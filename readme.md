@@ -49,8 +49,10 @@ server {
 
 ## FAQ
 
-*Wait, this checks the TOTP secret before you enter a password?*
-Yep, it feels kinda backwards, but I only have one login anyhow and I've rate-limited TOTP checks.
+**Wait, this checks the TOTP secret before you enter a password?**
 
-*What about CSRF attacks?*
+Yep, it feels kinda backwards, but I only have one login anyhow and I've rate-limited TOTP checks, so you can't hammer auth to figure out the TOTP secret.
+
+**What about CSRF attacks?**
+
 In my case Jupyter already prevents CSRF attacks and the only thing you could do (as far as I can tell) with CSRF attacks on the auth server is log a user out, so I haven't bothered.
