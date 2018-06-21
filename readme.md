@@ -2,7 +2,7 @@
 
 ## What is this for?
 
-Have you ever wanted to add more security to a web application without modifying the web application itself? Take for example Jupter Notebook/Lab, which allows you to run arbitrary code from a web browser. It supports a built-in password / token-based authentication. Hopefully you're using a unique password, but if you're following proper security practices it's generally a good idea to protect stuff with "something you know and something you have." Chances are that if you've gotten this far you don't need me to convince to of the merits of two factor authentication.
+Have you ever wanted to add more security to a web application without modifying the web application itself? Take for example Jupter Notebook/Lab, which allows you to run arbitrary code from a web browser. It supports a built-in password / token-based authentication. Hopefully you're using a unique password, but if you're following proper security practices it's generally a good idea to protect stuff with "something you know and something you have." Chances are that if you've gotten this far you don't need me to convince you of the merits of two factor authentication.
 
 ## How does it work?
 
@@ -11,6 +11,8 @@ I use nginx in front of a variety of web services to handle SSL termination (usi
 In this case, the auth endpoint is reverse proxied to the simple script in this repo, which does things like token checking and presenting a login form.
 
 ## Example Configuration
+
+In something like `/etc/nginx/sites-enabled/default`
 
 ```
 server {
