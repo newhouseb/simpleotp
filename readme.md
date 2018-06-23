@@ -1,8 +1,8 @@
-# Super Basic TOTP Server for nginx
+# Super Basic TOTP `auth_request` Server for nginx
 
 ## What is this for?
 
-Have you ever wanted to add more security to a web application without modifying the web application itself? Take for example Jupter Notebook/Lab, which allows you to run arbitrary code from a web browser. It supports a built-in password / token-based authentication. Hopefully you're using a unique password, but if you're following proper security practices it's generally a good idea to protect stuff with "something you know and something you have." Chances are that if you've gotten this far you don't need me to convince to of the merits of two factor authentication.
+Have you ever wanted to add more security to a web application without modifying the web application itself? Take for example Jupter Notebook/Lab, which allows you to run arbitrary code from a web browser. It supports a built-in password / token-based authentication. Hopefully you're using a unique password, but if you're following proper security practices it's generally a good idea to protect stuff with "something you know and something you have." Chances are that if you've gotten this far you don't need me to convince you of the merits of two factor authentication.
 
 ## How does it work?
 
@@ -11,6 +11,8 @@ I use nginx in front of a variety of web services to handle SSL termination (usi
 In this case, the auth endpoint is reverse proxied to the simple script in this repo, which does things like token checking and presenting a login form.
 
 ## Example Configuration
+
+In something like `/etc/nginx/sites-enabled/default`
 
 ```
 server {
@@ -45,7 +47,7 @@ server {
 ## Additional assembly required:
 
 1. You need to run `main.py` with Python3.5+ in a tmux session or something like supervisord.
-2. You should generate a TOTP secret (i.e. `import pyotp; print(pyotp.random_base32())`) and store it in `.totp_secret` alongside `main.py`
+2. You should generate a TOTP secret (i.e. `import pyotp; print(pyotp.random_base32())`) and store it in `.totp_secret` alongside `main.py` and also your two factor auth manager of choice (Google Authenticator, Duo, etc.)
 
 ## FAQ
 
