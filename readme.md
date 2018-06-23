@@ -1,4 +1,4 @@
-# Super Basic TOTP Server for nginx
+# Super Basic TOTP `auth_request` Server for nginx
 
 ## What is this for?
 
