@@ -45,7 +45,8 @@ class TokenManager(object):
             return False
 
     def invalidate(self, t):
-        del self.tokens[t]
+        if t in self.tokens:
+            del self.tokens[t]
 
 TOKEN_MANAGER = TokenManager()
 
@@ -73,6 +74,11 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
             return
 
         if self.path == '/auth/logout':
+            # Invalidate any tokens
+            cookie = http.cookies.SimpleCookie(self.headers.get('Cookie'))
+            if 'token' in cookie:
+                TOKEN_MANAGER.invalidate(cookie['token'].value)
+
             # This just replaces the token with garbage
             self.send_response(302)
             cookie = http.cookies.SimpleCookie()
