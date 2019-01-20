@@ -12,7 +12,7 @@ PORT = 8000
 TOKEN_LIFETIME = 60 * 60 * 24
 LAST_LOGIN_ATTEMPT = 0
 SECRET = open('.totp_secret').read().strip()
-SECURE_COOKIE = True  # Switch to False for testing on http connections without TLS 
+SECURE_COOKIE = False  # Switch to False for testing on http connections without TLS 
 FORM = """
 <html>
 <head>
