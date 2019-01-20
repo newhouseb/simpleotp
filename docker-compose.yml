@@ -11,8 +11,6 @@ services:
       SECRET: 3EYUCWBS2LN7AJGV
     expose: 
       - 80
-    networks:
-      - proxy_default      
 
     command: >
               sh -c -x '
@@ -30,4 +28,4 @@ services:
     volumes:
       - ./data/conf.d:/etc/nginx/conf.d
     ports:
-      - "80:80"
+      - "8080:80"
