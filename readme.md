@@ -48,6 +48,9 @@ server {
 
 1. You need to run `main.py` with Python3.5+ in a tmux session or something like supervisord.
 2. You should generate a TOTP secret (i.e. `import pyotp; print(pyotp.random_base32())`) and store it in `.totp_secret` alongside `main.py` and also your two factor auth manager of choice (Google Authenticator, Duo, etc.)
+```
+python3 -c "import pyotp; print(pyotp.random_base32())" > .totp_secret
+```
 
 ## FAQ
 
