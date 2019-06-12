@@ -12,6 +12,7 @@ PORT = 8000
 TOKEN_LIFETIME = 60 * 60 * 24
 LAST_LOGIN_ATTEMPT = 0
 SECRET = open('.totp_secret').read().strip()
+SECURE_COOKIE = False  # Switch to False for testing on http connections without TLS 
 FORM = """
 <html>
 <head>
@@ -84,7 +85,7 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
             cookie = http.cookies.SimpleCookie()
             cookie["token"] = '***'
             cookie["token"]["path"] = '/'
-            cookie["token"]["secure"] = True
+            cookie["token"]["secure"] = SECURE_COOKIE
             self.send_header('Set-Cookie', cookie.output(header=''))
             self.send_header('Location', '/')
             self.end_headers()
@@ -111,7 +112,7 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
                 cookie = http.cookies.SimpleCookie()
                 cookie["token"] = TOKEN_MANAGER.generate()
                 cookie["token"]["path"] = "/"
-                cookie["token"]["secure"] = True
+                cookie["token"]["secure"] = SECURE_COOKIE
 
                 self.send_response(302)
                 self.send_header('Set-Cookie', cookie.output(header=''))
