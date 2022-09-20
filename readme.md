@@ -49,14 +49,15 @@ If your application already uses /auth then you can change that, as long as you 
 ## Additional assembly required:
 
 1. Create totpauth user, or other user if desired
-2. Copy totpauth.py to /opt/totpauth or your preferred location, make sure totpauth user can execute it
-3. Copy totpauth.service to /etc/systemd/system, update if you're using a different path or totpauth.py location
-4. Copy totpauth.conf.example to /etc/totpauth/totpauth.conf, modify it as desired, and make sure totpauth user can read it
-5. Generate a TOTP secret using the command below and store it in `/etc/totpauth/secret` (or update totpauth.conf with its correct location), making sure that ONLY the totpauth user can read it
+2. Copy totpauth.py to /opt/totpauth/ or your preferred location, make sure totpauth user can read and execute it
+3. Copy totpauth.service to /etc/systemd/system/, update if you're using a different path or totpauth.py location
+4. Create /var/log/totpauth/ or some other place to store logs, and ensure the totpauth user can write to it
+5. Copy totpauth.conf.example to /etc/totpauth/totpauth.conf, modify it as desired, and make sure totpauth user can read it
+6. Generate a TOTP secret using the command below and store it in `/etc/totpauth/secret` (or update totpauth.conf with its correct location), making sure that ONLY the totpauth user can read it
 ```
 python3 -c "import pyotp; print(pyotp.random_base32())" > .totp_secret
 ```
-6. Import the TOTP secret into your two factor auth manager of choice (Google Authenticator, Duo, etc.)
+7. Import the TOTP secret into your two factor auth manager of choice (Google Authenticator, Duo, etc.)
 
 ## FAQ
 

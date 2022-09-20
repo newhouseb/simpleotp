@@ -17,7 +17,7 @@ PORT = conf.getint('port', 8000)
 TOKEN_LIFETIME = conf.getint('token_lifetime', 60 * 60 * 24)
 LOCATION = conf.get('location', '/auth')
 TITLE = conf.get('title', "Website TOTP Auth")
-STYLE = conf.get('style', "body{margin:40px auto;max-width:600px;line-height:1.6;font-size:18px;color:#222;padding:0 10px;}h1,h2,h3{line-height:1.2;}")
+STYLE = conf.get('style', "body{margin:40px auto;max-width:600px;line-height:1.6;font-size:18px;color:#222;padding:0 10px;}h1,h2,h3{line-height:1.2;}") # Shamelessly stolen from bettermotherfuckingwebsite.com
 SECURE_COOKIE = conf.getbool('secure_cookie', True)
 
 logging.basicConfig(filename=LOGFILE, level=logging.DEBUG, format='%(asctime)s - %(levelname)s:%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
