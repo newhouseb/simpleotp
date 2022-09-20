@@ -1,0 +1,9 @@
+[TOTP]
+logfile=/var/log/totpauth/totpauth.log
+secretfile=/etc/totpauth/secret
+port=8000
+token_lifetime=86400
+location=/auth
+title=Website TOTP Auth
+style=body{margin:40px auto;max-width:550px;line-height:1.6;font-size:18px;color:#222;padding:0 10px;}h1,h2,h3{line-height:1.2;}
+

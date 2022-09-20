@@ -5,26 +5,50 @@ import random
 import time
 from urllib.parse import parse_qs
 from cgi import parse_header, parse_multipart
-
+import configparser
 import pyotp
+import logging
+config = configparser.ConfigParser()
+config.read('/etc/totpauth/totpauth.conf')
+conf = config['TOTP']
+LOGFILE = conf.get('logfile', '/var/log/totpauth/totpauth.log')
+SECRETFILE = conf.get('secretfile', '/etc/totp_secret')
+PORT = conf.getint('port', 8000)
+TOKEN_LIFETIME = conf.getint('token_lifetime', 60 * 60 * 24)
+LOCATION = conf.get('location', '/auth')
+TITLE = conf.get('title', "Website TOTP Auth")
+STYLE = conf.get('style', "body{margin:40px auto;max-width:600px;line-height:1.6;font-size:18px;color:#222;padding:0 10px;}h1,h2,h3{line-height:1.2;}")
+SECURE_COOKIE = conf.getbool('secure_cookie', True)
 
-PORT = 8000
-TOKEN_LIFETIME = 60 * 60 * 24
+logging.basicConfig(filename=LOGFILE, level=logging.DEBUG, format='%(asctime)s - %(levelname)s:%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+print('Logging to ' + LOGFILE)
+
+#PORT = 8123
+TOKEN_NAME = 'token' # Changing this seems to break things for some reason
+#TOKEN_LIFETIME = 60 * 60 * 24
 LAST_LOGIN_ATTEMPT = 0
-SECRET = open('.totp_secret').read().strip()
+SECRET = open(SECRETFILE).read().strip()
 FORM = """
 <html>
 <head>
-<title>Please Log In</title>
+<title>{title}</title>
+<style type="text/css">
+{style}
+</style>
 </head>
 <body>
-<form action="/auth/login" method="POST">
+<h1>{title}</h1>
+<p>
+<form action="{location}/login" method="POST">
+<label for="token">Enter one-time code:</label>
 <input type="text" name="token">
 <input type="submit" value="Submit">
 </form>
+</p>
 </body>
 </html>
-"""
+""".format(title=TITLE, location=LOCATION, style=STYLE)
 
 class TokenManager(object):
     """Who needs a database when you can just store everything in memory?"""
@@ -52,20 +76,20 @@ TOKEN_MANAGER = TokenManager()
 
 class AuthHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/auth/check':
+        if self.path == LOCATION + '/check':
             # Check if they have a valid token
             cookie = http.cookies.SimpleCookie(self.headers.get('Cookie'))
-            if 'token' in cookie and TOKEN_MANAGER.is_valid(cookie['token'].value):
+            if TOKEN_NAME in cookie and TOKEN_MANAGER.is_valid(cookie[TOKEN_NAME].value):
                 self.send_response(200)
                 self.end_headers()
                 return
 
-            # Otherwise return 401, which will be redirected to '/auth/login' upstream
+            # Otherwise return 401, which will be redirected to LOCATION + '/login' upstream
             self.send_response(401)
             self.end_headers()
             return
 
-        if self.path == '/auth/login':
+        if self.path == LOCATION + '/login':
             # Render out the login form
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -73,18 +97,18 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(bytes(FORM, 'UTF-8'))
             return
 
-        if self.path == '/auth/logout':
+        if self.path == LOCATION + '/logout':
             # Invalidate any tokens
             cookie = http.cookies.SimpleCookie(self.headers.get('Cookie'))
-            if 'token' in cookie:
-                TOKEN_MANAGER.invalidate(cookie['token'].value)
+            if TOKEN_NAME in cookie:
+                TOKEN_MANAGER.invalidate(cookie[TOKEN_NAME].value)
 
             # This just replaces the token with garbage
             self.send_response(302)
             cookie = http.cookies.SimpleCookie()
-            cookie["token"] = '***'
-            cookie["token"]["path"] = '/'
-            cookie["token"]["secure"] = True
+            cookie[TOKEN_NAME] = '***'
+            cookie[TOKEN_NAME]["path"] = '/'
+            cookie[TOKEN_NAME]["secure"] = SECURE_COOKIE
             self.send_header('Set-Cookie', cookie.output(header=''))
             self.send_header('Location', '/')
             self.end_headers()
@@ -95,7 +119,7 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
-        if self.path == '/auth/login':
+        if self.path == LOCATION + '/login':
             # Rate limit login attempts to once per second
             global LAST_LOGIN_ATTEMPT
             if time.time() - LAST_LOGIN_ATTEMPT < 1.0:
@@ -107,11 +131,13 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
 
             # Check the TOTP Secret
             params = self.parse_POST()
-            if (params.get(b'token') or [None])[0] == bytes(pyotp.TOTP(SECRET).now(), 'UTF-8'):
+            ip=self.headers.get("X-Real-IP")
+            if (params.get(TOKEN_NAME.encode('utf-8')) or [None])[0] == bytes(pyotp.TOTP(SECRET).now(), 'UTF-8'):
+                logging.info("Successful auth from " + ip)
                 cookie = http.cookies.SimpleCookie()
-                cookie["token"] = TOKEN_MANAGER.generate()
-                cookie["token"]["path"] = "/"
-                cookie["token"]["secure"] = True
+                cookie[TOKEN_NAME] = TOKEN_MANAGER.generate()
+                cookie[TOKEN_NAME]["path"] = "/"
+                cookie[TOKEN_NAME]["secure"] = True
 
                 self.send_response(302)
                 self.send_header('Set-Cookie', cookie.output(header=''))
@@ -121,8 +147,9 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
 
             # Otherwise redirect back to the login page
             else:
+                logging.warning("Failed auth from " + ip)
                 self.send_response(302)
-                self.send_header('Location', '/auth/login')
+                self.send_header('Location', LOCATION + '/login')
                 self.end_headers()
                 return
                 
@@ -142,10 +169,17 @@ class AuthHandler(http.server.BaseHTTPRequestHandler):
             postvars = {}
         return postvars
 
+    def log_message(self, format, *args):
+        logging.info(format%args)
+
 socketserver.TCPServer.allow_reuse_address = True
 httpd = socketserver.TCPServer(("", PORT), AuthHandler)
 try:
-    print("serving at port", PORT)
+    print("Listening on port " + str(PORT))
+    logging.info("Listening on port " + str(PORT))
     httpd.serve_forever()
 finally:
     httpd.server_close()
+
+
+

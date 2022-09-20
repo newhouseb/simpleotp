@@ -21,6 +21,7 @@ server {
         location /auth {
                 proxy_pass http://127.0.0.1:8000; # This is the TOTP Server
                 proxy_set_header X-Original-URI $request_uri;
+		proxy_set_header X-Real-IP $request_addr; # So we can log attempts by IP
         }
 
         # This ensures that if the TOTP server returns 401 we redirect to login
@@ -43,14 +44,19 @@ server {
 
 # The rest of the server definition, including SSL and whatnot
 ```
+If your application already uses /auth then you can change that, as long as you modify the `location` parameter in totpauth.conf during install.
 
 ## Additional assembly required:
 
-1. You need to run `main.py` with Python3.5+ in a tmux session or something like supervisord.
-2. You should generate a TOTP secret (i.e. `import pyotp; print(pyotp.random_base32())`) and store it in `.totp_secret` alongside `main.py` and also your two factor auth manager of choice (Google Authenticator, Duo, etc.)
+1. Create totpauth user, or other user if desired
+2. Copy totpauth.py to /opt/totpauth or your preferred location, make sure totpauth user can execute it
+3. Copy totpauth.service to /etc/systemd/system, update if you're using a different path or totpauth.py location
+4. Copy totpauth.conf.example to /etc/totpauth/totpauth.conf, modify it as desired, and make sure totpauth user can read it
+5. Generate a TOTP secret using the command below and store it in `/etc/totpauth/secret` (or update totpauth.conf with its correct location), making sure that ONLY the totpauth user can read it
 ```
 python3 -c "import pyotp; print(pyotp.random_base32())" > .totp_secret
 ```
+6. Import the TOTP secret into your two factor auth manager of choice (Google Authenticator, Duo, etc.)
 
 ## FAQ
 
