@@ -16,6 +16,7 @@ location=/auth
 
 # This should not collide with any cookies your web app sets
 cookie_name=totp_token
+secure_cookie=true
 
 # lifetime is in seconds
 token_lifetime=86400
