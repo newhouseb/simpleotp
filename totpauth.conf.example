@@ -1,9 +1,29 @@
 [TOTP]
+
 logfile=/var/log/totpauth/totpauth.log
+# Log level must be one of DEBUG, INFO, WARNING, ERROR, CRITICAL
+loglevel=INFO
+
 secretfile=/etc/totpauth/secret
+
+# The totp_window allows codes earlier or later, to account for clock drift and entry time
+# For example, a window of 3 will accept a code up to 90 seconds old (assuming 30 second codes)
+totp_window=3
+
+# These should match the nginx config
 port=8000
-token_lifetime=86400
 location=/auth
+
+# This should not collide with any cookies your web app sets
+cookie_name=totp_token
+
+# lifetime is in seconds
+token_lifetime=86400
+
+# A few parameters to make the TOTP landing page your own:
 title=Website TOTP Auth
-style=body{margin:40px auto;max-width:550px;line-height:1.6;font-size:18px;color:#222;padding:0 10px;}h1,h2,h3{line-height:1.2;}
+
+# This is inserted into the body in a <style> tag for aesthetics
+style=body{margin:40px auto;max-width:550px;line-height:1.6;font-size:18px;color:#444;padding:0 10px;}h1,h2,h3{line-height:1.2;}
+# Shamelessly stolen from bettermotherfuckingwebsite.com
 
