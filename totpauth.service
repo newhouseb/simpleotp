@@ -1,0 +1,9 @@
+[Unit]
+Description=TOTP Auth service for NGINX
+
+[Service]
+User=totpauth
+ExecStart=/usr/bin/python3 /opt/totpauth/totpauth.py
+
+[Install]
+WantedBy=multi-user.target
